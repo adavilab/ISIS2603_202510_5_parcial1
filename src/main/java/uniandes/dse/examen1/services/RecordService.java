@@ -31,5 +31,31 @@ public class RecordService {
     public RecordEntity createRecord(String loginStudent, String courseCode, Double grade, String semester)
             throws InvalidRecordException {
         // TODO
+        Optional<StudentEntity> student = studentRepository.findByLogin(loginStudent);
+        Optional<CourseEntity> course = courseRepository.findByCourseCode(courseCode);
+
+        if (student.isEmpty() || course.isEmpty()) {
+            throw new InvalidRecordException("Tiene que existir el estudiante y el curso.");
+        }
+
+        if (grade < 1.5 || grade > 5.0) {
+            throw new InvalidRecordException("Nota no está entre 1.5 y 5.0.");
+        }
+
+        List<RecordEntity> records = recordRepository.findAll();
+        for (RecordEntity record : records) {
+            if (record.getStudentEntity().getLogin().equals(loginStudent) && record.getFinalGrade() >= 3.0) {
+                throw new InvalidRecordException("Ya pasó el curso.");
+            }
+        }
+
+        RecordEntity record = new RecordEntity();
+        record.setStudentEntity(student.get());
+        record.setCourseEntity(course.get());
+        record.setFinalGrade(grade);
+        record.setSemester(semester);
+
+        return recordRepository.save(record);
+
     }
 }
